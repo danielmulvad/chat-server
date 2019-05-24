@@ -39,38 +39,22 @@ app.use(function (req, res, next) {
   next()
 })
 
-app.use(bodyParser.json({ limit: '50mb' })) // 50 mb total data cap (including photo)
+app.use(bodyParser.json({ limit: '50mb' }))
 
 app.get('/api/user', (req, res) => {
-  user.getAllUsers(req, res)
+  user.getAllUsers(req, res, (result) => res.json(result))
 })
 
 app.get('/api/user/:user', (req, res) => {
-  user.getUser(req, res)
-})
-
-app.post('/user/:user/update', (req, res) => {
-  const { id, update } = req.body
-  Data.findOneAndUpdate(id, update, err => {
-    if (err) return res.json({ success: false, error: err })
-    return res.json({ success: true })
-  })
-})
-
-app.delete('/user/:user/delete', (req, res) => {
-  const { id } = req.body
-  Data.findOneAndDelete(id, err => {
-    if (err) return res.send(err)
-    return res.json({ success: true })
-  })
+  user.getUser(req, res, (result) => res.json(result))
 })
 
 app.post('/api/login', (req, res) => {
-  user.login(req, res)
+  user.login(req, res, (result) => res.json(result))
 })
 
 app.post('/api/user/create', (req, res) => {
-  user.register(req, res)
+  user.register(req, res, (result) => res.json(result))
 })
 
 mongoose.connect('mongodb://localhost:27017/users', { useNewUrlParser: true })
