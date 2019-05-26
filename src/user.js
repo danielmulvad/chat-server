@@ -1,35 +1,7 @@
 const Data = require('./data')
 const bcrypt = require('bcrypt')
-let jwt = require('jsonwebtoken')
 
 class User {
-  checkToken (req, res, next) {
-    let token = req.headers['x-access-token'] || req.headers['authorization']
-    if (token.startsWith('Bearer ')) {
-      // Remove Bearer from string
-      token = token.slice(7, token.length)
-    }
-
-    if (token) {
-      jwt.verify(token, 'verysecret', (err, decoded) => {
-        if (err) {
-          return res.json({
-            success: false,
-            message: 'Token is not valid'
-          })
-        } else {
-          req.decoded = decoded
-          next()
-        }
-      })
-    } else {
-      return res.json({
-        success: false,
-        message: 'Auth token is not supplied'
-      })
-    }
-  };
-
   async getAllUsers (req, res, callback) {
     var result
     var response
@@ -57,12 +29,7 @@ class User {
     if (user) {
       var passEqual = await bcrypt.compare(req.body.password, user[0].password)
       if (passEqual) {
-        let token = jwt.sign({ username: user[0].username },
-          'verysecret',
-          { expiresIn: '24h' // expires in 24 hours
-          }
-        )
-        response = { authenticated: true, token: token, data: { username: req.body.username, id: user[0]._id } }
+        response = { authenticated: true, data: { username: req.body.username, id: user[0]._id } }
         callback(response)
       }
     }

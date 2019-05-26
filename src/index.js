@@ -24,19 +24,12 @@ wss.on('connection', function connection (ws) {
     console.log('recieved', data)
     wss.clients.forEach(function each (client) {
       client.send(data)
-      console.log('sent ' + data)
     })
   })
 })
+
 app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-  res.header('Access-Control-Allow-Headers', 'Content-type')
-  res.header('Content-Type', 'application/json')
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
-  }
-  next()
+  middleware.index(req, res, next)
 })
 
 app.use(bodyParser.json({ limit: '50mb' }))
