@@ -63,4 +63,4 @@ let db = mongoose.connection
 
 db.once('open', () => console.log('connected to the database'))
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
-httpsServer.listen(51819, () => console.log('LISTENING ON PORT 51819'))
+server.listen(51819, () => console.log('LISTENING ON PORT 51819'))
