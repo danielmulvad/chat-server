@@ -3,6 +3,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const fs = require('fs')
 const https = require('https')
+const jwt = require('jsonwebtoken')
 
 const app = express()
 const Users = require('./user')
@@ -38,11 +39,37 @@ wss.on('connection', function connection (ws) {
 app.use(function (req, res, next) {
   middleware.index(req, res, next)
 })
-
+app.use(function (req, res, next) {
+  try {
+    console.log('middleware')
+    const token = req.headers.authorization.split(' ')[1]
+    jwt.verify(token, '', function (err, payload) {
+      if (err) {
+        console.log('ERROR!', err)
+      }
+      console.log(payload)
+      if (payload) {
+        user.find({ username: payload.username }).then(
+          (doc) => {
+            req.user = doc
+            next()
+          }
+        )
+      } else {
+        next()
+      }
+    })
+  } catch (e) {
+    next()
+  }
+})
 app.use(bodyParser.json({ limit: '50mb' }))
 
 app.get('/api/user', (req, res) => {
-  user.getAllUsers(req, res, (result) => res.json(result))
+  user.authenticate(req, res, (authResult) => {
+    console.log(authResult)
+    user.getAllUsers(req, res, (result) => res.json(result))
+  })
 })
 
 app.get('/api/user/:user', (req, res) => {

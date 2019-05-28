@@ -1,5 +1,6 @@
 const Data = require('./data')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 class User {
   async getAllUsers (req, res, callback) {
@@ -29,7 +30,8 @@ class User {
     if (user) {
       var passEqual = await bcrypt.compare(req.body.password, user[0].password)
       if (passEqual) {
-        response = { authenticated: true, data: { username: req.body.username, id: user[0]._id } }
+        var token = jwt.sign({ username: req.body.username, id: user[0]._id }, 'uzpB6AU6B3wCJZo!B_Hcud2GhRyNpPWoXiKJGM6_yQ-bUJcJFD', { expiresIn: 86400 }) // encode username & id as token
+        response = { token: token, data: { username: req.body.username, id: user[0]._id } }
         callback(response)
       }
     }
