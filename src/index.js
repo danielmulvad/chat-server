@@ -1,14 +1,10 @@
 const mongoose = require('mongoose')
 const express = require('express')
-const bodyParser = require('body-parser')
 const fs = require('fs')
 const https = require('https')
-const jwt = require('jsonwebtoken')
-
 const app = express()
 const Users = require('./user')
 const Middleware = require('./middleware')
-
 const user = new Users()
 const WebSocket = require('ws')
 const middleware = new Middleware()
@@ -16,6 +12,14 @@ const server = https.createServer({
   cert: fs.readFileSync('fullchain.pem'),
   key: fs.readFileSync('privkey.pem')
 }, app)
+
+mongoose.connect('mongodb://localhost:27017/users', { useNewUrlParser: true })
+
+let db = mongoose.connection
+
+db.once('open', () => console.log('connected to the database'))
+db.on('error', console.error.bind(console, 'MongoDB connection error:'))
+
 const wss = new WebSocket.Server({ server })
 
 // Broadcast to all.
@@ -38,32 +42,8 @@ wss.on('connection', function connection (ws) {
 
 app.use(function (req, res, next) {
   middleware.index(req, res, next)
+  middleware.token(req, res, next)
 })
-app.use(function (req, res, next) {
-  try {
-    console.log('middleware')
-    const token = req.headers.authorization.split(' ')[1]
-    jwt.verify(token, '', function (err, payload) {
-      if (err) {
-        console.log('ERROR!', err)
-      }
-      console.log(payload)
-      if (payload) {
-        user.find({ username: payload.username }).then(
-          (doc) => {
-            req.user = doc
-            next()
-          }
-        )
-      } else {
-        next()
-      }
-    })
-  } catch (e) {
-    next()
-  }
-})
-app.use(bodyParser.json({ limit: '50mb' }))
 
 app.get('/api/user', (req, res) => {
   console.log(req.user)
@@ -82,10 +62,4 @@ app.post('/api/user/create', (req, res) => {
   user.register(req, res, (result) => res.json(result))
 })
 
-mongoose.connect('mongodb://localhost:27017/users', { useNewUrlParser: true })
-
-let db = mongoose.connection
-
-db.once('open', () => console.log('connected to the database'))
-db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 server.listen(51819, () => console.log('LISTENING ON PORT 51819'))
