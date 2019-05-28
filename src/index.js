@@ -1,7 +1,14 @@
 const mongoose = require('mongoose')
 const express = require('express')
 const bodyParser = require('body-parser')
+const fs = require('fs')
+const https = require('https')
+const privateKey = fs.readFileSync('privkey.pem').toString()
+const certificate = fs.readFileSync('fullchain.pem').toString()
+
+const credentials = { key: privateKey, cert: certificate }
 const app = express()
+const httpsServer = https.createServer(credentials, app)
 const Users = require('./user')
 const Middleware = require('./middleware')
 
@@ -56,5 +63,4 @@ let db = mongoose.connection
 
 db.once('open', () => console.log('connected to the database'))
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
-
-app.listen(51819, () => console.log(`LISTENING ON PORT 51819`))
+httpsServer.listen(51819, () => console.log('LISTENING ON PORT 51819'))
