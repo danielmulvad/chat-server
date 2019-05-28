@@ -4,21 +4,32 @@ const jwt = require('jsonwebtoken')
 
 class User {
   async getAllUsers (req, res, callback) {
-    var result
     var response
-    await Data.find({}, '-password', (err, data) => {
-      if (err) {
-        console.log('ERROR!', err)
+    var token = req.headers.authorization.split(' ')[1]
+    if (jwt.verify(token, 'uzpB6AU6B3wCJZo!B_Hcud2GhRyNpPWoXiKJGM6_yQ-bUJcJFD')) {
+      var result
+      await Data.find({}, '-password', (err, data) => {
+        if (err) {
+          console.log('ERROR!', err)
+        }
+        result = data
+        response = {
+          success: true,
+          data: result
+        }
+      })
+    } else {
+      response = {
+        success: false
       }
-      result = data
-      response = { success: true, data: result }
-    })
+    }
     callback(response)
   }
 
   async login (req, res, callback) {
     var user
     var response
+    console.log(req.body)
     await Data.find({
       username: req.body.username
     }, function (err, result) {
@@ -30,7 +41,7 @@ class User {
     if (user) {
       var passEqual = await bcrypt.compare(req.body.password, user[0].password)
       if (passEqual) {
-        var token = jwt.sign({ username: req.body.username, id: user[0]._id }, 'uzpB6AU6B3wCJZo!B_Hcud2GhRyNpPWoXiKJGM6_yQ-bUJcJFD', { expiresIn: 86400 }) // encode username & id as token
+        var token = jwt.sign({ id: user[0]._id }, 'uzpB6AU6B3wCJZo!B_Hcud2GhRyNpPWoXiKJGM6_yQ-bUJcJFD', { expiresIn: 86400 }) // encode id as token
         response = { token: token, data: { username: req.body.username, id: user[0]._id } }
         callback(response)
       }

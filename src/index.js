@@ -2,7 +2,13 @@ const mongoose = require('mongoose')
 const express = require('express')
 const fs = require('fs')
 const https = require('https')
+const bodyParser = require('body-parser')
 const app = express()
+app.use(bodyParser.urlencoded({
+  extended: false
+}))
+app.use(bodyParser.json())
+
 const Users = require('./user')
 const Middleware = require('./middleware')
 const user = new Users()
@@ -42,11 +48,9 @@ wss.on('connection', function connection (ws) {
 
 app.use(function (req, res, next) {
   middleware.index(req, res, next)
-  middleware.token(req, res, next)
 })
 
 app.get('/api/user', (req, res) => {
-  console.log(req.user)
   user.getAllUsers(req, res, (result) => res.json(result))
 })
 
