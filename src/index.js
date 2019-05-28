@@ -66,10 +66,8 @@ app.use(function (req, res, next) {
 app.use(bodyParser.json({ limit: '50mb' }))
 
 app.get('/api/user', (req, res) => {
-  user.authenticate(req, res, (authResult) => {
-    console.log(authResult)
-    user.getAllUsers(req, res, (result) => res.json(result))
-  })
+  console.log(req.user)
+  user.getAllUsers(req, res, (result) => res.json(result))
 })
 
 app.get('/api/user/:user', (req, res) => {
