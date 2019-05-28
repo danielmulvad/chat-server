@@ -3,19 +3,19 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const fs = require('fs')
 const https = require('https')
-const privateKey = fs.readFileSync('privkey.pem').toString()
-const certificate = fs.readFileSync('fullchain.pem').toString()
 
-const credentials = { key: privateKey, cert: certificate }
 const app = express()
-const httpsServer = https.createServer(credentials, app)
 const Users = require('./user')
 const Middleware = require('./middleware')
 
 const user = new Users()
 const WebSocket = require('ws')
 const middleware = new Middleware()
-const wss = new WebSocket.Server({ httpsServer })
+const server = https.createServer({
+  cert: fs.readFileSync('fullchain.pem'),
+  key: fs.readFileSync('privkey.pem')
+}, app)
+const wss = new WebSocket.Server({ server })
 
 // Broadcast to all.
 wss.broadcast = function broadcast (data) {
