@@ -15,7 +15,7 @@ const Middleware = require('./middleware')
 const user = new Users()
 const WebSocket = require('ws')
 const middleware = new Middleware()
-const wss = new WebSocket.Server({ port: 8080 })
+const wss = new WebSocket.Server({ httpsServer })
 
 // Broadcast to all.
 wss.broadcast = function broadcast (data) {
