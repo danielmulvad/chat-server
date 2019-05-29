@@ -19,7 +19,7 @@ const server = https.createServer({
   key: fs.readFileSync('privkey.pem')
 }, app)
 
-mongoose.connect('mongodb://localhost:27017/users', { useNewUrlParser: true })
+mongoose.connect('mongodb://dhm.wtf:27017/users', { useNewUrlParser: true })
 
 let db = mongoose.connection
 
