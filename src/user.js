@@ -32,7 +32,7 @@ class User {
     console.log(req.body)
     await Data.find({
       username: req.body.username
-    }, function (err, result) {
+    }, '-password', function (err, result) {
       if (err) {
         console.log('ERROR!', err)
       }

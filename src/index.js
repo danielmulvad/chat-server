@@ -4,9 +4,7 @@ const fs = require('fs')
 const https = require('https')
 const bodyParser = require('body-parser')
 const app = express()
-app.use(bodyParser.urlencoded({
-  extended: false
-}))
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 const Users = require('./user')
@@ -14,10 +12,7 @@ const Middleware = require('./middleware')
 const user = new Users()
 const WebSocket = require('ws')
 const middleware = new Middleware()
-const server = https.createServer({
-  cert: fs.readFileSync('fullchain.pem'),
-  key: fs.readFileSync('privkey.pem')
-}, app)
+const server = https.createServer({ cert: fs.readFileSync('fullchain.pem'), key: fs.readFileSync('privkey.pem') }, app)
 
 mongoose.connect('mongodb://dhm.wtf:27017/users', { useNewUrlParser: true })
 
