@@ -3,6 +3,18 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 class User {
+  authenticate (req, res, callback) {
+    var response
+    var token = req.headers.authorization.split(' ')[1]
+    if (jwt.verify(token, 'uzpB6AU6B3wCJZo!B_Hcud2GhRyNpPWoXiKJGM6_yQ-bUJcJFD')) {
+      response = true
+      callback(response)
+    } else {
+      response = false
+      callback(response)
+    }
+  }
+
   async getAllUsers (req, res, callback) {
     var response
     var token = req.headers.authorization.split(' ')[1]

@@ -45,20 +45,29 @@ app.use(function (req, res, next) {
   middleware.index(req, res, next)
 })
 
-app.get('/api/user', (req, res) => {
-  user.getAllUsers(req, res, (result) => res.json(result))
-})
-
-app.get('/api/user/:user', (req, res) => {
-  user.getUser(req, res, (result) => res.json(result))
-})
-
 app.post('/api/login', (req, res) => {
   user.login(req, res, (result) => res.json(result))
 })
 
+app.get('/api/token', (req, res) => {
+  user.authenticate(req, res, (result) => {
+    if (result) {
+      res.sendStatus(200)
+    }
+    res.sendStatus(401)
+  })
+})
+
+app.get('/api/user', (req, res) => {
+  user.getAllUsers(req, res, (result) => res.json(result))
+})
+
 app.post('/api/user/create', (req, res) => {
   user.register(req, res, (result) => res.json(result))
+})
+
+app.get('/api/user/:user', (req, res) => {
+  user.getUser(req, res, (result) => res.json(result))
 })
 
 server.listen(51819, () => console.log('LISTENING ON PORT 51819'))
