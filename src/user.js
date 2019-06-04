@@ -1,50 +1,42 @@
 const Data = require('./data')
+const data = new Data()
 const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
 
 class User {
-  authenticate (req, res, callback) {
-    var response
-    var token = req.headers.authorization.split(' ')[1]
-    if (jwt.verify(token, 'uzpB6AU6B3wCJZo!B_Hcud2GhRyNpPWoXiKJGM6_yQ-bUJcJFD')) {
-      response = true
-      callback(response)
-    } else {
-      response = false
-      callback(response)
-    }
+  async authenticate (req, res, callback) {
+    await Data.find({ username: req.body.username }, '-password', (err, data) => {
+      if (err) {
+        console.log('ERROR!', err)
+      }
+      if (data[0] && data[0]._id.toString() === req.body._id) {
+        console.log('callback')
+        callback()
+      }
+    })
   }
 
   async getAllUsers (req, res, callback) {
     var response
-    var token = req.headers.authorization.split(' ')[1]
-    if (jwt.verify(token, 'uzpB6AU6B3wCJZo!B_Hcud2GhRyNpPWoXiKJGM6_yQ-bUJcJFD')) {
-      var result
-      await Data.find({}, '-password', (err, data) => {
-        if (err) {
-          console.log('ERROR!', err)
-        }
-        result = data
-        response = {
-          success: true,
-          data: result
-        }
-      })
-    } else {
-      response = {
-        success: false
+    var result
+    await Data.find({}, '-password', (err, data) => {
+      if (err) {
+        console.log('ERROR!', err)
       }
-    }
+      result = data
+      response = {
+        success: true,
+        data: result
+      }
+    })
     callback(response)
   }
 
   async login (req, res, callback) {
     var user
     var response
-    console.log(req.body)
     await Data.find({
       username: req.body.username
-    }, '-password', function (err, result) {
+    }, function (err, result) {
       if (err) {
         console.log('ERROR!', err)
       }
@@ -53,15 +45,23 @@ class User {
     if (user) {
       var passEqual = await bcrypt.compare(req.body.password, user[0].password)
       if (passEqual) {
-        var token = jwt.sign({ id: user[0]._id }, 'uzpB6AU6B3wCJZo!B_Hcud2GhRyNpPWoXiKJGM6_yQ-bUJcJFD', { expiresIn: 86400 }) // encode id as token
-        response = { token: token, data: { username: req.body.username, id: user[0]._id } }
-        callback(response)
+        data.generateAuthToken((token) => {
+          console.log('GEN TOKEN:', token)
+          response = {
+            data: {
+              _id: user[0]._id,
+              username: user[0].username,
+              token: token
+            }
+          }
+          callback(response)
+        })
       }
     }
   }
 
   getUser (req, res, callback) {
-    Data.find({ username: req.params.user }, (err, data) => {
+    Data.find({ username: req.params.user }, '-password', (err, data) => {
       var response
       if (err) {
         response = { success: false, error: err }
@@ -73,45 +73,25 @@ class User {
   }
 
   async register (req, res, callback) {
-    let data = new Data()
-    var response
-    const { username, password } = req.body
-    if ((!username && username !== 0) || !password) {
-      response = { success: false, error: 'INVALID INPUTS' }
-      return callback(response)
-    }
-    var temp
     await Data.find({
       username: req.body.username
     }, function (err, result) {
       if (err) {
         console.log('ERROR!', err)
       }
-      if (result.length > 0) {
-        temp = false
-      } else {
-        temp = true
-      }
     })
-    if (temp === false) {
-      res.sendStatus(403)
-    } else {
-      bcrypt.hash(password, 10, function (err, hash) {
-        if (err) {
-          console.log('ERROR!', err)
-        }
-        data.username = username
-        data.password = hash
-        data.save(err => {
-          if (err) {
-            response = { success: false, error: err }
-            return callback(response)
-          }
-          response = { success: true }
-          return callback(response)
-        })
+    await bcrypt.hash(req.body.password, 10, async function (err, hash) {
+      if (err) {
+        console.log('ERROR!', err)
+      }
+      data.username = req.body.username
+      data.password = hash
+      await data.save()
+      const token = data.generateAuthToken()
+      res.header('authorization', token).send({
+        _id: data._id
       })
-    }
+    })
   }
 }
 

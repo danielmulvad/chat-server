@@ -1,27 +1,43 @@
-const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
 const express = require('express')
 const fs = require('fs')
 const https = require('https')
-const bodyParser = require('body-parser')
-const app = express()
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
-
+const mongoose = require('mongoose')
 const Users = require('./user')
 const Middleware = require('./middleware')
-const user = new Users()
 const WebSocket = require('ws')
-const middleware = new Middleware()
-const server = https.createServer({ cert: fs.readFileSync('fullchain.pem'), key: fs.readFileSync('privkey.pem') }, app)
 
-mongoose.connect('mongodb://dhm.wtf:27017/users', { useNewUrlParser: true })
+// middleware
+const middleware = new Middleware()
+const app = express()
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({
+  extended: false
+}))
+app.use(function (req, res, next) {
+  middleware.index(req, res, next)
+})
+
+// Setup
+const user = new Users()
+const server = https.createServer({
+  cert: fs.readFileSync('fullchain.pem'),
+  key: fs.readFileSync('privkey.pem')
+}, app)
+
+// Mongo
+mongoose.connect('mongodb://dhm.wtf:27017/users', {
+  useNewUrlParser: true
+})
 
 let db = mongoose.connection
 
 db.once('open', () => console.log('connected to the database'))
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 
-const wss = new WebSocket.Server({ server })
+const wss = new WebSocket.Server({
+  server
+})
 
 // Broadcast to all.
 wss.broadcast = function broadcast (data) {
@@ -41,24 +57,15 @@ wss.on('connection', function connection (ws) {
   })
 })
 
-app.use(function (req, res, next) {
-  middleware.index(req, res, next)
-})
-
 app.post('/api/login', (req, res) => {
   user.login(req, res, (result) => res.json(result))
 })
 
-app.get('/api/token', (req, res) => {
-  user.authenticate(req, res, (result) => {
-    if (result) {
-      res.sendStatus(200)
-    }
-    res.sendStatus(401)
-  })
+app.post('/api/token', middleware.authenticate, async (req, res) => {
+  user.authenticate(req, res, () => res.sendStatus(200))
 })
 
-app.get('/api/user', (req, res) => {
+app.get('/api/user', middleware.authenticate, (req, res) => {
   user.getAllUsers(req, res, (result) => res.json(result))
 })
 
@@ -66,7 +73,7 @@ app.post('/api/user/create', (req, res) => {
   user.register(req, res, (result) => res.json(result))
 })
 
-app.get('/api/user/:user', (req, res) => {
+app.get('/api/user/:user', middleware.authenticate, (req, res) => {
   user.getUser(req, res, (result) => res.json(result))
 })
 
