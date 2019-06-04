@@ -25,7 +25,6 @@ const DataSchema = new Schema({
 
 DataSchema.methods.generateAuthToken = function (callback) {
   jwt.sign({
-    exp: Math.floor(Date.now() / 1000) + (60 * 60),
     data: {
       _id: this._id,
       username: this.username
