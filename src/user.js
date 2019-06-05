@@ -1,5 +1,5 @@
 const Data = require('./data')
-const data = new Data()
+const userData = new Data()
 const bcrypt = require('bcrypt')
 
 class User {
@@ -9,7 +9,6 @@ class User {
         console.log('ERROR!', err)
       }
       if (data[0] && data[0]._id.toString() === req.body._id) {
-        console.log('callback')
         callback()
       }
     })
@@ -45,7 +44,7 @@ class User {
     if (user) {
       var passEqual = await bcrypt.compare(req.body.password, user[0].password)
       if (passEqual) {
-        data.generateAuthToken((token) => {
+        userData.generateAuthToken((token) => {
           console.log('GEN TOKEN:', token)
           response = {
             data: {
@@ -72,6 +71,14 @@ class User {
     })
   }
 
+  async modifyUser (req, res, callback) {
+    const user = await Data.findOne({ username: req.body.username })
+    user.avatar = req.body.avatar
+    console.log(req.body)
+    await user.save()
+    callback()
+  }
+
   async register (req, res, callback) {
     await Data.find({
       username: req.body.username
@@ -84,12 +91,14 @@ class User {
       if (err) {
         console.log('ERROR!', err)
       }
-      data.username = req.body.username
-      data.password = hash
-      await data.save()
-      const token = data.generateAuthToken()
+      userData.firstname = req.body.firstname
+      userData.lastname = req.body.lastname
+      userData.username = req.body.username
+      userData.password = hash
+      await userData.save()
+      const token = userData.generateAuthToken()
       res.header('authorization', token).send({
-        _id: data._id
+        _id: userData._id
       })
     })
   }

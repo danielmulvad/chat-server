@@ -5,7 +5,7 @@ MAINTAINER Daniel Mulvad <daniel.mulvad@greenwavesystems.com>
 
 # Install app dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 

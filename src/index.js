@@ -10,7 +10,13 @@ const WebSocket = require('ws')
 // middleware
 const middleware = new Middleware()
 const app = express()
-app.use(bodyParser.json())
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+  next()
+})
+app.use(bodyParser.json({
+  limit: '50mb'
+}))
 app.use(bodyParser.urlencoded({
   extended: false
 }))
@@ -65,7 +71,7 @@ app.post('/api/token', middleware.authenticate, async (req, res) => {
   user.authenticate(req, res, () => res.sendStatus(200))
 })
 
-app.get('/api/user', middleware.authenticate, (req, res) => {
+app.get('/api/user', (req, res) => {
   user.getAllUsers(req, res, (result) => res.json(result))
 })
 
@@ -73,8 +79,16 @@ app.post('/api/user/create', (req, res) => {
   user.register(req, res, (result) => res.json(result))
 })
 
-app.get('/api/user/:user', middleware.authenticate, (req, res) => {
+app.get('/api/user/:user', (req, res) => {
   user.getUser(req, res, (result) => res.json(result))
+})
+
+app.post('/api/user/:user', middleware.authenticate, (req, res) => {
+  user.authenticate(req, res, () => {
+    user.modifyUser(req, res, () => {
+      res.sendStatus(200)
+    })
+  })
 })
 
 server.listen(51819, () => console.log('LISTENING ON PORT 51819'))
