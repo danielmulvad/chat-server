@@ -1,5 +1,5 @@
 # --- Base node ---
-FROM node:12.1.0 as base
+FROM node:11.15.0 as base
 
 MAINTAINER Daniel Mulvad <daniel.mulvad@greenwavesystems.com>
 

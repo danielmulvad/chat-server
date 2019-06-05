@@ -45,7 +45,6 @@ class User {
       var passEqual = await bcrypt.compare(req.body.password, user[0].password)
       if (passEqual) {
         userData.generateAuthToken((token) => {
-          console.log('GEN TOKEN:', token)
           response = {
             data: {
               _id: user[0]._id,
@@ -74,7 +73,6 @@ class User {
   async modifyUser (req, res, callback) {
     const user = await Data.findOne({ username: req.body.username })
     user.avatar = req.body.avatar
-    console.log(req.body)
     await user.save()
     callback()
   }
