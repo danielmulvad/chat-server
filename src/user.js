@@ -4,11 +4,11 @@ const bcrypt = require('bcrypt')
 
 class User {
   async authenticate (req, res, callback) {
-    await Data.find({ username: req.params.user }, '-password', (err, data) => {
+    await Data.findOne({ username: req.body.username }, '-password', (err, data) => {
       if (err) {
         console.log('ERROR!', err)
       }
-      if (data[0] && data[0]._id.toString() === req.body._id) {
+      if (data._id.toString() === req.body._id) {
         callback()
       }
     })
